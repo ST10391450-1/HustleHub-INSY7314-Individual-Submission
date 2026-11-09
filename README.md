@@ -201,7 +201,7 @@ Ensure the following software is installed:
 ### Clone the Repository
 
 ```bash
-git clone <REPOSITORY_URL>
+git clone (https://github.com/ST10391450-1/HustleHub-INSY7314-Individual-Submission/)
 cd HustleHub-INSY7314-Individual-Submission
 ```
 
