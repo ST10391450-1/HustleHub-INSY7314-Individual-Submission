@@ -1,0 +1,337 @@
+
+.my-gigs-page {
+    min-height: 100vh;
+    background: #f7f7fb;
+    color: #17172d;
+}
+
+.my-gigs-header {
+    min-height: 76px;
+    padding: 0 8%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    background: #ffffff;
+    border-bottom: 1px solid #e9e8ef;
+}
+
+.my-gigs-brand {
+    color: #17172d;
+    font-size: 25px;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.my-gigs-brand span {
+    color: #7255d9;
+}
+
+.my-gigs-header nav {
+    display: flex;
+    gap: 25px;
+}
+
+.my-gigs-header nav a {
+    color: #625b78;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.my-gigs-header nav a:hover {
+    color: #7255d9;
+}
+
+.my-gigs-create-button {
+    display: inline-block;
+    padding: 11px 17px;
+    border-radius: 7px;
+    background: #7255d9;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.my-gigs-create-button:hover {
+    background: #5d42c0;
+}
+
+.my-gigs-content {
+    width: min(1050px, 90%);
+    margin: 50px auto;
+}
+
+.my-gigs-heading {
+    margin-bottom: 35px;
+}
+
+.my-gigs-heading > span {
+    color: #7255d9;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+}
+
+.my-gigs-heading h1 {
+    margin: 12px 0;
+    font-size: 36px;
+    letter-spacing: -1px;
+}
+
+.my-gigs-heading p {
+    max-width: 600px;
+    color: #777386;
+    line-height: 1.7;
+}
+
+.my-gigs-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.my-gigs-summary h2 {
+    font-size: 20px;
+}
+
+.my-gigs-summary > span {
+    padding: 7px 12px;
+    border-radius: 20px;
+    background: #eeeafd;
+    color: #7255d9;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.my-gigs-list {
+    display: grid;
+    gap: 18px;
+}
+
+.my-gig-card {
+    padding: 25px;
+    background: #ffffff;
+    border: 1px solid #e9e8ef;
+    border-radius: 11px;
+    box-shadow: 0 7px 25px rgba(30, 25, 65, 0.035);
+}
+
+.my-gig-information {
+    max-width: 800px;
+}
+
+.my-gig-category {
+    color: #7255d9;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.my-gig-information h3 {
+    margin: 10px 0;
+    font-size: 19px;
+}
+
+.my-gig-information > p {
+    color: #777386;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.my-gig-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 18px;
+    margin-top: 18px;
+    color: #625b78;
+    font-size: 13px;
+}
+
+.my-gig-meta > span:first-child {
+    color: #17172d;
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.my-gig-status {
+    padding: 5px 10px;
+    border-radius: 20px;
+    background: #e8f6ed;
+    color: #267744;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: capitalize;
+}
+
+.my-gig-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.my-gig-actions button,
+.my-gig-edit-actions button {
+    padding: 9px 16px;
+    border: 1px solid #dedce7;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #625b78;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.my-gig-actions .my-gig-edit-button {
+    border-color: #7255d9;
+    background: #7255d9;
+    color: #ffffff;
+}
+
+.my-gig-actions .my-gig-delete-button {
+    border-color: #e5bcbc;
+    color: #a12b2b;
+}
+
+.my-gig-actions button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.my-gig-edit-form {
+    display: grid;
+    gap: 11px;
+    margin-top: 25px;
+    padding-top: 22px;
+    border-top: 1px solid #e9e8ef;
+}
+
+.my-gig-edit-form h4 {
+    margin: 0 0 8px;
+    font-size: 17px;
+}
+
+.my-gig-edit-form label {
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.my-gig-edit-form input,
+.my-gig-edit-form textarea {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid #dedce7;
+    border-radius: 6px;
+    color: #17172d;
+    font: inherit;
+    font-size: 13px;
+    box-sizing: border-box;
+}
+
+.my-gig-edit-form input:focus,
+.my-gig-edit-form textarea:focus {
+    outline: none;
+    border-color: #7255d9;
+}
+
+.my-gig-edit-form textarea {
+    resize: vertical;
+}
+
+.my-gig-edit-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+.my-gig-edit-fields > div {
+    display: grid;
+    gap: 11px;
+}
+
+.my-gig-edit-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.my-gig-edit-actions button:first-child {
+    border-color: #7255d9;
+    background: #7255d9;
+    color: #ffffff;
+}
+
+.my-gig-edit-actions button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.my-gigs-success,
+.my-gigs-error {
+    padding: 13px 16px;
+    margin-bottom: 20px;
+    border-radius: 7px;
+    font-size: 13px;
+}
+
+.my-gigs-success {
+    background: #e8f6ed;
+    color: #267744;
+}
+
+.my-gigs-error {
+    background: #fff0f0;
+    color: #a12b2b;
+}
+
+.my-gigs-message,
+.my-gigs-empty {
+    padding: 45px 25px;
+    border: 1px solid #e9e8ef;
+    border-radius: 10px;
+    background: #ffffff;
+    text-align: center;
+    color: #777386;
+}
+
+.my-gigs-empty h2 {
+    color: #17172d;
+    font-size: 19px;
+}
+
+.my-gigs-empty p {
+    margin-bottom: 22px;
+}
+
+@media (max-width: 650px) {
+    .my-gigs-header {
+        padding: 15px 5%;
+        flex-wrap: wrap;
+    }
+
+    .my-gigs-header nav {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .my-gigs-content {
+        margin: 35px auto;
+    }
+
+    .my-gigs-heading h1 {
+        font-size: 30px;
+    }
+
+    .my-gig-card {
+        padding: 19px;
+    }
+
+    .my-gig-edit-fields {
+        grid-template-columns: 1fr;
+    }
+}

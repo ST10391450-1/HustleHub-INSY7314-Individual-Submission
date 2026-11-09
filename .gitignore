@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Environment secrets
+.env
+.env.*
+
+# Allow example environment file
+!.env.example
+
+# HTTPS certificates and private keys
+ssl/*.key
+ssl/*.pem
+ssl/*.crt
+
+# Runtime data
+data/*.tmp
+data/*.lock
+
+# Test output
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+
+# IDE and operating system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

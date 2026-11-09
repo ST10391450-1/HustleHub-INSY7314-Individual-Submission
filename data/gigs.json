@@ -1,0 +1,38 @@
+[
+    {
+        "id": "82983c4c-da01-4e29-a76a-5574230e1d9c",
+        "freelancerId": "3a797581-821b-4b3e-bcab-0cb1836586cb",
+        "title": "Professional Website Development1",
+        "description": "I will build a responsive and modern website for your business.",
+        "category": "Web Development",
+        "price": 1500,
+        "deliveryDays": 7,
+        "status": "active",
+        "createdAt": "2026-11-09T09:01:01.025Z",
+        "updatedAt": "2026-11-09T09:14:42.935Z"
+    },
+    {
+        "id": "8d61733c-a149-4b1b-8151-477791021b49",
+        "freelancerId": "02757196-15ce-4f9b-843c-b3c273272028",
+        "title": "TestTest",
+        "description": "TEstTErerwerwerwerwrewererererer",
+        "category": "Graphic Design",
+        "price": 23444,
+        "deliveryDays": 7,
+        "status": "active",
+        "createdAt": "2026-11-09T09:48:31.253Z",
+        "updatedAt": "2026-11-09T09:57:36.548Z"
+    },
+    {
+        "id": "6fa5f8b7-94ae-4bbc-8590-eda0c702a635",
+        "freelancerId": "02757196-15ce-4f9b-843c-b3c273272028",
+        "title": "Client Permission Test",
+        "description": "This gig tests whether clients are prevented from creating freelancer listings.",
+        "category": "Testing",
+        "price": 100,
+        "deliveryDays": 2,
+        "status": "active",
+        "createdAt": "2026-11-09T09:59:42.906Z",
+        "updatedAt": "2026-11-09T09:59:42.906Z"
+    }
+]

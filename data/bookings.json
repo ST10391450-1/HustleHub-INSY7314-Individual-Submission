@@ -1,0 +1,42 @@
+[
+    {
+        "id": "eaf25704-89d9-4831-8e96-0a3783d99e34",
+        "clientId": "3822edb9-dc5e-4372-8797-12375fcebed1",
+        "freelancerId": "3a797581-821b-4b3e-bcab-0cb1836586cb",
+        "gigId": "82983c4c-da01-4e29-a76a-5574230e1d9c",
+        "amount": 1500,
+        "status": "rejected",
+        "createdAt": "2026-11-09T09:29:24.615Z",
+        "updatedAt": "2026-11-09T09:36:34.569Z"
+    },
+    {
+        "id": "a3402356-5dcd-4c2e-a946-6e95935c3cfe",
+        "clientId": "3822edb9-dc5e-4372-8797-12375fcebed1",
+        "freelancerId": "3a797581-821b-4b3e-bcab-0cb1836586cb",
+        "gigId": "82983c4c-da01-4e29-a76a-5574230e1d9c",
+        "amount": 1500,
+        "status": "completed",
+        "createdAt": "2026-11-09T09:29:56.455Z",
+        "updatedAt": "2026-11-09T09:36:37.558Z"
+    },
+    {
+        "id": "0d3d36b1-75e6-44eb-a13e-0f88f816e5fe",
+        "clientId": "3822edb9-dc5e-4372-8797-12375fcebed1",
+        "freelancerId": "3a797581-821b-4b3e-bcab-0cb1836586cb",
+        "gigId": "82983c4c-da01-4e29-a76a-5574230e1d9c",
+        "amount": 1500,
+        "status": "pending",
+        "createdAt": "2026-11-09T10:01:09.713Z",
+        "updatedAt": "2026-11-09T10:01:09.713Z"
+    },
+    {
+        "id": "391af74c-beae-41fd-99a5-3fb19d1831f2",
+        "clientId": "3822edb9-dc5e-4372-8797-12375fcebed1",
+        "freelancerId": "02757196-15ce-4f9b-843c-b3c273272028",
+        "gigId": "8d61733c-a149-4b1b-8151-477791021b49",
+        "amount": 23444,
+        "status": "completed",
+        "createdAt": "2026-11-09T10:12:08.984Z",
+        "updatedAt": "2026-11-09T10:18:56.179Z"
+    }
+]

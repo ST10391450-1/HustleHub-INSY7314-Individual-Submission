@@ -1,0 +1,38 @@
+[
+    {
+        "id": "2fc830d1-2db9-4f91-8cb6-175d33c32182",
+        "fullName": "Test User",
+        "email": "testuser@hustlehub.co.za",
+        "passwordHash": "$2b$12$FXIB8JhyuyiWJk4h.LXFc.pBIJyg8T7obWkRzY8LbW4.t2eo4dMaG",
+        "role": "client",
+        "createdAt": "2026-11-09T07:38:13.721Z",
+        "updatedAt": "2026-11-09T07:38:13.721Z"
+    },
+    {
+        "id": "3a797581-821b-4b3e-bcab-0cb1836586cb",
+        "fullName": "test",
+        "email": "test@test.com",
+        "passwordHash": "$2b$12$ALn8WTzumHuggdZAAh5b8e6K4ifeBGj4yvupiFNz8faOeSD6tJXS.",
+        "role": "freelancer",
+        "createdAt": "2026-11-09T08:51:00.325Z",
+        "updatedAt": "2026-11-09T08:51:00.325Z"
+    },
+    {
+        "id": "3822edb9-dc5e-4372-8797-12375fcebed1",
+        "fullName": "client",
+        "email": "client@test.com",
+        "passwordHash": "$2b$12$JrF48HLaVS6MgAv6ZKmmduICiJcKmid7y8RJmP0kewryHmpzY8kji",
+        "role": "client",
+        "createdAt": "2026-11-09T09:24:08.296Z",
+        "updatedAt": "2026-11-09T09:24:08.296Z"
+    },
+    {
+        "id": "02757196-15ce-4f9b-843c-b3c273272028",
+        "fullName": "freelance",
+        "email": "freelance@test.com",
+        "passwordHash": "$2b$12$mDwlaFv.5WRc938LpGL1LuhoARLDjn53xBBic/q.cKhr.eOwCrzUi",
+        "role": "freelancer",
+        "createdAt": "2026-11-09T09:46:40.057Z",
+        "updatedAt": "2026-11-09T09:46:40.057Z"
+    }
+]
