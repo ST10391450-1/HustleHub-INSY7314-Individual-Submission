@@ -1,0 +1,105 @@
+name: HustleHub+ CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+  pull_request:
+    branches:
+      - main
+      - master
+      - develop
+  workflow_dispatch:
+
+jobs:
+  backend:
+    name: Backend Tests and Validation
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:8.0
+        ports:
+          - 27017:27017
+        env:
+          MONGO_INITDB_ROOT_USERNAME: ci_root
+          MONGO_INITDB_ROOT_PASSWORD: ci_test_password
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      NODE_ENV: test
+      PORT: 3000
+      HOST: localhost
+      HTTPS_ENABLED: false
+      SSL_KEY_PATH: ssl/server.key
+      SSL_CERT_PATH: ssl/server.crt
+      BCRYPT_SALT_ROUNDS: 10
+      JWT_SECRET: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+      JWT_EXPIRES_IN: 1h
+      ENUMERATION_SAFE_REGISTRATION: true
+      DATA_FILE_PATH: ./data/users.json
+      MONGO_ROOT_USERNAME: ci_root
+      MONGO_ROOT_PASSWORD: ci_test_password
+      MONGO_URI: mongodb://ci_root:ci_test_password@127.0.0.1:27017/hustlehub_test?authSource=admin
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci
+
+      - name: Run backend static code analysis
+        run: npm run lint
+
+      - name: Validate backend JavaScript syntax
+        run: |
+          find src -type f -name "*.js" -print0 | xargs -0 -n1 node --check
+
+      - name: Upload backend coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage-report
+          path: coverage/
+          if-no-files-found: ignore
+
+  frontend:
+    name: Frontend Lint and Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Run frontend linting
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
