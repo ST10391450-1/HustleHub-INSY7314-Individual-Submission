@@ -33,9 +33,32 @@ function MyGigs() {
     }, []);
 
     useEffect(() => {
-        fetchGigs();
-    }, [fetchGigs]);
-    //endregion
+        let isActive = true;
+
+        api.get('/gigs/mine')
+            .then(response => {
+                if (isActive) {
+                    setGigs(response.data.data || []);
+                }
+            })
+            .catch(requestError => {
+                if (isActive) {
+                    setError(
+                        requestError.response?.data?.error?.message ||
+                        'Unable to retrieve your gigs. Please try again.'
+                    );
+                }
+            })
+            .finally(() => {
+                if (isActive) {
+                    setIsLoading(false);
+                }
+            });
+
+        return () => {
+            isActive = false;
+        };
+    }, []);
 
     //region Start Editing Gig
     const startEditing = (gig) => {

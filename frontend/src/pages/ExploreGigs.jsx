@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import '../styles/ExploreGigs.css';
 
 function ExploreGigs() {
@@ -42,22 +42,41 @@ function ExploreGigs() {
             setIsLoading(false);
         }
     };
-    //endregion
-
     useEffect(() => {
-        fetchGigs();
-    }, []);
+        let isActive = true;
 
-    //region Filter Gig Categories
+        api.get('/gigs')
+            .then(response => {
+                if (isActive) {
+                    setGigs(response.data.data || []);
+                }
+            })
+            .catch(requestError => {
+                if (isActive) {
+                    setError(
+                        requestError.response?.data?.error?.message ||
+                        'Unable to retrieve gigs. Please try again.'
+                    );
+                }
+            })
+            .finally(() => {
+                if (isActive) {
+                    setIsLoading(false);
+                }
+            });
+
+        return () => {
+            isActive = false;
+        };
+    }, []);
+    
     const categories = useMemo(() => {
         return [
             'All categories',
             ...new Set(gigs.map(gig => gig.category))
         ];
     }, [gigs]);
-    //endregion
 
-    //region Filter Available Gigs
     const filteredGigs = useMemo(() => {
         return gigs.filter(gig => {
             const searchValue = searchTerm.toLowerCase();
@@ -86,9 +105,7 @@ function ExploreGigs() {
             user?.role !== 'freelancer' ||
             gig.freelancerId !== currentUserId
     );
-    //endregion
 
-    //region Format Currency
     const formatPrice = price => {
         return new Intl.NumberFormat('en-ZA', {
             style: 'currency',
@@ -96,9 +113,7 @@ function ExploreGigs() {
             minimumFractionDigits: 2
         }).format(price);
     };
-    //endregion
 
-    //region Handle Booking
     const handleBooking = async gig => {
         const confirmed = window.confirm(
             `Book "${gig.title}" for ${formatPrice(gig.price)}?`
