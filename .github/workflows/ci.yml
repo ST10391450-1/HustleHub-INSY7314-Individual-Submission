@@ -1,3 +1,4 @@
+
 name: HustleHub+ CI Pipeline
 
 on:
@@ -26,6 +27,7 @@ jobs:
         env:
           MONGO_INITDB_ROOT_USERNAME: ci_root
           MONGO_INITDB_ROOT_PASSWORD: ci_test_password
+          GLIBC_TUNABLES: glibc.pthread.rseq=1
         options: >-
           --health-cmd "mongosh --quiet --eval 'db.adminCommand({ ping: 1 })'"
           --health-interval 10s
@@ -61,6 +63,9 @@ jobs:
 
       - name: Install backend dependencies
         run: npm ci
+
+      - name: Run backend tests with coverage
+        run: npm run test:coverage
 
       - name: Run backend static code analysis
         run: npm run lint
