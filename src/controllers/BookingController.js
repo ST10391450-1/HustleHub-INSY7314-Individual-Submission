@@ -6,14 +6,25 @@ const bookingRepository = new BookingRepository();
 const transactionRepository = new TransactionRepository();
 const gigRepository = new GigRepository();
 
-const createBooking = async (req, res, next) => {
+const {
+    logInfo,
+    logWarning
+} = require('../services/logger');
 
+const createBooking = async (req, res, next) => {
     try {
         const { gigId } = req.body;
 
         const gig = await gigRepository.findById(gigId);
 
         if (!gig || gig.status !== 'active') {
+            logWarning('Booking attempt failed', {
+                event: 'BOOKING_FAILED',
+                reason: 'GIG_NOT_FOUND',
+                userId: req.user.userId,
+                gigId
+            });
+
             return res.status(404).json({
                 success: false,
                 error: {
@@ -24,6 +35,13 @@ const createBooking = async (req, res, next) => {
         }
 
         if (gig.freelancerId === req.user.userId) {
+            logWarning('Booking attempt rejected', {
+                event: 'BOOKING_REJECTED',
+                reason: 'OWN_GIG_BOOKING',
+                userId: req.user.userId,
+                gigId
+            });
+
             return res.status(403).json({
                 success: false,
                 error: {
@@ -33,7 +51,7 @@ const createBooking = async (req, res, next) => {
             });
         }
 
-       const  booking = await bookingRepository.create({
+        const booking = await bookingRepository.create({
             clientId: req.user.userId,
             freelancerId: gig.freelancerId,
             gigId: gig.id,
@@ -52,6 +70,16 @@ const createBooking = async (req, res, next) => {
                 paymentMethod: 'simulation'
             });
 
+            logInfo('Booking created successfully', {
+                event: 'BOOKING_CREATED',
+                bookingId: booking.id,
+                transactionId: transaction.id,
+                clientId: booking.clientId,
+                freelancerId: booking.freelancerId,
+                gigId: booking.gigId,
+                amount: booking.amount
+            });
+
             return res.status(201).json({
                 success: true,
                 message: 'Booking created successfully.',
@@ -61,11 +89,21 @@ const createBooking = async (req, res, next) => {
                 }
             });
         } catch (transactionError) {
+            let rollbackFailed = false;
+
             try {
                 await bookingRepository.delete(booking.id);
             } catch {
+                rollbackFailed = true;
                 transactionError.rollbackFailed = true;
             }
+
+            logWarning('Booking transaction creation failed', {
+                event: 'BOOKING_TRANSACTION_FAILED',
+                bookingId: booking.id,
+                userId: req.user.userId,
+                rollbackFailed
+            });
 
             throw transactionError;
         }

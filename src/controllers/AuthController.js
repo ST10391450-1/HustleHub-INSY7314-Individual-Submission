@@ -12,7 +12,10 @@ const {
 
 const { generateToken } = require('../utils/jwtUtils');
 
-//region Controller Initialisation
+const {
+    logInfo,
+    logWarning
+} = require('../services/logger');
 
 const userRepository = new UserRepository();
 
@@ -20,15 +23,9 @@ const dummyPasswordHash = hashPassword(
     randomBytes(32).toString('hex')
 );
 
-//endregion
-
-//region User Registration
-
 async function register(req, res, next) {
     try {
         const { fullName, email, password } = req.body;
-
-        // Only client and freelancer roles are permitted.
         const allowedRoles = ['client', 'freelancer'];
 
         const role = allowedRoles.includes(req.body.role)
@@ -74,7 +71,6 @@ async function register(req, res, next) {
             });
         }
 
-        // Demonstration mode: intentionally reveals whether the email exists.
         if (!created) {
             return res.status(409).json({
                 success: false,
@@ -94,10 +90,6 @@ async function register(req, res, next) {
     }
 }
 
-//endregion
-
-//region User Login
-
 async function login(req, res, next) {
     try {
         const { email, password } = req.body;
@@ -116,6 +108,11 @@ async function login(req, res, next) {
         );
 
         if (!user || !passwordMatches) {
+            logWarning('Login attempt failed', {
+                event: 'LOGIN_FAILED',
+                reason: 'INVALID_CREDENTIALS'
+            });
+
             return res.status(401).json({
                 success: false,
                 error: {
@@ -124,6 +121,11 @@ async function login(req, res, next) {
                 }
             });
         }
+        logInfo('User login successful', {
+            event: 'LOGIN_SUCCESS',
+            userId: user.id,
+            role: user.role
+        });
 
         const token = generateToken(user);
 
@@ -139,9 +141,6 @@ async function login(req, res, next) {
         next(error);
     }
 }
-
-//endregion
-
 module.exports = {
     register,
     login
