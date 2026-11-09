@@ -2,15 +2,36 @@
 const os = require('os');
 const path = require('path');
 const fs = require('fs/promises');
+const dotenv = require('dotenv');
+const mongoose = require('mongoose');
 const request = require('supertest');
+dotenv.config({
+    path: path.resolve(process.cwd(), '.env'),
+    quiet: true
+});
 
-//region Test Environment Configuration
 const testDataFile = path.join(
     os.tmpdir(),
     `hustlehub-api-tests-${process.pid}.json`
 );
 
+const mongoUsername = encodeURIComponent(
+    process.env.MONGO_ROOT_USERNAME
+);
+
+const mongoPassword = encodeURIComponent(
+    process.env.MONGO_ROOT_PASSWORD
+);
+
+process.env.NODE_ENV = 'test';
 process.env.DATA_FILE_PATH = testDataFile;
+
+process.env.MONGO_URI =
+    `mongodb://${mongoUsername}:${mongoPassword}` +
+    '@127.0.0.1:27017/hustlehub_test?authSource=admin';
+
+const { connectDatabase, disconnectDatabase } =
+    require('../src/config/database');
 
 const app = require('../src/app');
 
@@ -21,20 +42,28 @@ const testUser = {
 };
 
 let authToken = null;
-//endregion
 
-//region Integration Test Setup
+jest.setTimeout(15000);
+
 beforeAll(async () => {
     await fs.rm(testDataFile, { force: true });
     await fs.writeFile(testDataFile, '[]', 'utf8');
+
+    await connectDatabase();
+    await mongoose.connection.dropDatabase();
 });
 
 afterAll(async () => {
-    await fs.rm(testDataFile, { force: true });
-});
-//endregion
+    try {
+        if (mongoose.connection.readyState === 1) {
+            await mongoose.connection.dropDatabase();
+        }
 
-//region Registration Tests
+        await disconnectDatabase();
+    } finally {
+        await fs.rm(testDataFile, { force: true });
+    }
+});
 describe('POST /api/auth/register', () => {
     test('should register a new user successfully', async () => {
         const response = await request(app)
@@ -45,9 +74,7 @@ describe('POST /api/auth/register', () => {
         expect(response.body.success).toBe(true);
     });
 });
-//endregion
 
-//region Login Tests
 describe('POST /api/auth/login', () => {
     test('should authenticate valid credentials and return a JWT', async () => {
         const response = await request(app)
@@ -88,9 +115,7 @@ describe('POST /api/auth/login', () => {
         expect(response.body.error.code).toBe('INVALID_CREDENTIALS');
     });
 });
-//endregion
 
-//region Protected Profile Tests
 describe('GET /api/users/me', () => {
     test('should reject requests without a JWT', async () => {
         const response = await request(app)
@@ -111,4 +136,3 @@ describe('GET /api/users/me', () => {
         expect(response.body.data.user.passwordHash).toBeUndefined();
     });
 });
-//endregion

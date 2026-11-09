@@ -85,6 +85,8 @@ const dataFilePath = path.resolve(
     getRequiredValue('DATA_FILE_PATH')
 );
 
+const mongoUri = getRequiredValue('MONGO_URI');
+
 const sslKeyPath = path.resolve(
     process.cwd(),
     getRequiredValue('SSL_KEY_PATH')
@@ -157,6 +159,9 @@ const config = Object.freeze({
 
     storage: {
         dataFilePath
+    },
+    database: {
+        mongoUri
     }
 });
 

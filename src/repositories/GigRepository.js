@@ -1,128 +1,103 @@
-const fs = require('fs/promises');
-const path = require('path');
 const Gig = require('../models/Gig');
+const GigDocument = require('../models/mongoose/Gig');
+
 
 
 class GigRepository {
-    constructor() {
-        this.filePath = path.join(__dirname, '../../data/gigs.json');
-        this.writeQueue = Promise.resolve();
-    }
 
     async initialise() {
-        await fs.mkdir(path.dirname(this.filePath), {
-            recursive: true
-        });
-
-        try {
-            await fs.access(this.filePath);
-        } catch {
-            await fs.writeFile(this.filePath, '[]', 'utf8');
-        }
+        return true;
     }
 
     async getAll() {
-        await this.initialise();
+        const gigs = await GigDocument.find().lean();
 
-        const content = await fs.readFile(this.filePath, 'utf8');
-        const gigs = JSON.parse(content);
-
-        return gigs.map(gig => new Gig(gig));
+        return gigs.map(gig => this.toDomainModel(gig));
     }
 
     async findById(id) {
-        const gigs = await this.getAll();
-        return gigs.find(gig => gig.id === id) || null;
+        const gig = await GigDocument.findById(id).lean();
+
+        return gig ? this.toDomainModel(gig) : null;
     }
 
     async findByFreelancerId(freelancerId) {
-        const gigs = await this.getAll();
+        const gigs = await GigDocument.find({
+            freelancerId
+        }).lean();
 
-        return gigs.filter(
-            gig => gig.freelancerId === freelancerId
-        );
+        return gigs.map(gig => this.toDomainModel(gig));
     }
 
     async create(gigData) {
-        const operation = this.writeQueue.then(async () => {
-            const gigs = await this.getAll();
-
-            const gig = new Gig(gigData);
-
-            gigs.push(gig);
-
-            await this.saveAll(gigs);
-
-            return gig;
+        const gig = await GigDocument.create({
+            freelancerId: gigData.freelancerId,
+            title: gigData.title,
+            description: gigData.description,
+            category: gigData.category,
+            price: gigData.price,
+            deliveryDays: gigData.deliveryDays,
+            status: gigData.status || 'active'
         });
 
-        this.writeQueue = operation.catch(() => {});
-
-        return operation;
+        return this.toDomainModel(gig.toObject());
     }
 
     async update(id, updates) {
-        const operation = this.writeQueue.then(async () => {
-            const gigs = await this.getAll();
-            const index = gigs.findIndex(gig => gig.id === id);
+        const allowedFields = [
+            'title',
+            'description',
+            'category',
+            'price',
+            'deliveryDays',
+            'status'
+        ];
 
-            if (index === -1) {
-                return null;
+        const safeUpdates = {};
+
+        for (const field of allowedFields) {
+            if (updates[field] !== undefined) {
+                safeUpdates[field] = updates[field];
             }
+        }
 
-            const existingGig = gigs[index];
+        const gig = await GigDocument.findByIdAndUpdate(
+            id,
+            {
+                $set: safeUpdates
+            },
+            {
+                new: true,
+                runValidators: true
+            }
+        ).lean();
 
-            const updatedGig = new Gig({
-                ...existingGig,
-                ...updates,
-                id: existingGig.id,
-                freelancerId: existingGig.freelancerId,
-                createdAt: existingGig.createdAt,
-                updatedAt: new Date().toISOString()
-            });
-
-            gigs[index] = updatedGig;
-
-            await this.saveAll(gigs);
-
-            return updatedGig;
-        });
-
-        this.writeQueue = operation.catch(() => {});
-
-        return operation;
+        return gig ? this.toDomainModel(gig) : null;
     }
 
     async delete(id) {
-        const operation = this.writeQueue.then(async () => {
-            const gigs = await this.getAll();
-            const updatedGigs = gigs.filter(gig => gig.id !== id);
+        const gig = await GigDocument.findByIdAndDelete(id);
 
-            if (updatedGigs.length === gigs.length) {
-                return false;
-            }
-
-            await this.saveAll(updatedGigs);
-
-            return true;
-        });
-
-        this.writeQueue = operation.catch(() => {});
-
-        return operation;
+        return gig ? this.toDomainModel(gig.toObject()) : null;
     }
 
-    async saveAll(gigs) {
-        const temporaryPath = `${this.filePath}.tmp`;
-
-        await fs.writeFile(
-            temporaryPath,
-            JSON.stringify(gigs, null, 4),
-            'utf8'
-        );
-
-        await fs.rename(temporaryPath, this.filePath);
+    toDomainModel(gig) {
+        return new Gig({
+            id: gig._id,
+            freelancerId: gig.freelancerId,
+            title: gig.title,
+            description: gig.description,
+            category: gig.category,
+            price: gig.price,
+            deliveryDays: gig.deliveryDays,
+            status: gig.status,
+            createdAt: gig.createdAt instanceof Date
+                ? gig.createdAt.toISOString()
+                : gig.createdAt,
+            updatedAt: gig.updatedAt instanceof Date
+                ? gig.updatedAt.toISOString()
+                : gig.updatedAt
+        });
     }
 }
-
 module.exports = GigRepository;

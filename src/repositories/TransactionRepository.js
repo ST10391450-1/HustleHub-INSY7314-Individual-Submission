@@ -1,143 +1,128 @@
-
-const fs = require('fs/promises');
-const path = require('path');
 const Transaction = require('../models/Transaction');
+const TransactionDocument = require('../models/mongoose/Transaction');
 
 class TransactionRepository {
-    constructor(filePath = path.join(__dirname, '../../data/transactions.json')) {
-        this.filePath = filePath;
-        this.writeQueue = Promise.resolve();
-    }
 
     async initialise() {
-        await fs.mkdir(path.dirname(this.filePath), {
-            recursive: true
-        });
-
-        try {
-            await fs.access(this.filePath);
-        } catch {
-            await fs.writeFile(this.filePath, '[]', 'utf8');
-        }
+        return true;
     }
 
     async getAll() {
-        await this.initialise();
+        const transactions = await TransactionDocument.find().lean();
 
-        const fileContent = await fs.readFile(this.filePath, 'utf8');
-        const transactions = JSON.parse(fileContent);
-
-        return transactions.map(
-            transaction => new Transaction(transaction)
+        return transactions.map(transaction =>
+            this.toDomainModel(transaction)
         );
     }
 
-    async findById(transactionId) {
-        const transactions = await this.getAll();
+    async findById(id) {
+        const transaction = await TransactionDocument.findById(id).lean();
 
-        return transactions.find(
-            transaction => transaction.id === transactionId
-        ) || null;
+        return transaction
+            ? this.toDomainModel(transaction)
+            : null;
     }
 
     async findByBookingId(bookingId) {
-        const transactions = await this.getAll();
+        const transaction = await TransactionDocument.findOne({
+            bookingId
+        }).lean();
 
-        return transactions.find(
-            transaction => transaction.bookingId === bookingId
-        ) || null;
+        return transaction
+            ? this.toDomainModel(transaction)
+            : null;
     }
 
     async findByClientId(clientId) {
-        const transactions = await this.getAll();
+        const transactions = await TransactionDocument.find({
+            clientId
+        }).lean();
 
-        return transactions.filter(
-            transaction => transaction.clientId === clientId
+        return transactions.map(transaction =>
+            this.toDomainModel(transaction)
         );
     }
 
     async findByFreelancerId(freelancerId) {
-        const transactions = await this.getAll();
+        const transactions = await TransactionDocument.find({
+            freelancerId
+        }).lean();
 
-        return transactions.filter(
-            transaction => transaction.freelancerId === freelancerId
+        return transactions.map(transaction =>
+            this.toDomainModel(transaction)
         );
     }
 
     async create(transactionData) {
-        const operation = this.writeQueue.then(async () => {
-            const transactions = await this.getAll();
+        try {
+            const transaction = await TransactionDocument.create({
+                bookingId: transactionData.bookingId,
+                clientId: transactionData.clientId,
+                freelancerId: transactionData.freelancerId,
+                gigId: transactionData.gigId,
+                amount: transactionData.amount,
+                status: transactionData.status || 'simulated',
+                paymentMethod: transactionData.paymentMethod || 'simulation'
+            });
 
-            const existingTransaction = transactions.find(
-                transaction => transaction.bookingId === transactionData.bookingId
-            );
-
-            if (existingTransaction) {
-                const error = new Error(
+            return this.toDomainModel(transaction.toObject());
+        } catch (error) {
+            if (error.code === 11000) {
+                const duplicateError = new Error(
                     'A transaction already exists for this booking.'
                 );
 
-                error.code = 'DUPLICATE_BOOKING_TRANSACTION';
-                throw error;
+                duplicateError.code = 'DUPLICATE_BOOKING_TRANSACTION';
+
+                throw duplicateError;
             }
 
-            const transaction = new Transaction(transactionData);
-
-            transactions.push(transaction);
-
-            await this.saveAll(transactions);
-
-            return transaction;
-        });
-
-        this.writeQueue = operation.catch(() => {});
-
-        return operation;
-    }
-
-    async updateStatusByBookingId(bookingId, status) {
-        const operation = this.writeQueue.then(async () => {
-            const transactions = await this.getAll();
-
-            const transactionIndex = transactions.findIndex(
-                transaction => transaction.bookingId === bookingId
-            );
-
-            if (transactionIndex === -1) {
-                return null;
-            }
-
-            const existingTransaction = transactions[transactionIndex];
-
-            transactions[transactionIndex] = new Transaction({
-                ...existingTransaction.toPublicJSON(),
-                status
-            });
-
-            await this.saveAll(transactions);
-
-            return transactions[transactionIndex];
-        });
-
-        this.writeQueue = operation.catch(() => {});
-
-        return operation;
-    }
-
-    async saveAll(transactions) {
-        const temporaryFile = `${this.filePath}.tmp`;
-
-        await fs.writeFile(
-            temporaryFile,
-            JSON.stringify(
-                transactions.map(transaction => transaction.toPublicJSON()),
-                null,
-                4
-            ),
-            'utf8'
-        );
-
-        await fs.rename(temporaryFile, this.filePath);
+            throw error;
         }
+    }
+
+        async updateStatusByBookingId(bookingId, status) {
+        const updateFields = { status };
+
+        if (status === 'completed') {
+            updateFields.completedAt = new Date();
+        }
+
+        const transaction = await TransactionDocument.findOneAndUpdate(
+            { bookingId },
+            {
+                $set: updateFields
+            },
+            {
+                new: true,
+                runValidators: true
+            }
+        ).lean();
+
+        return transaction
+            ? this.toDomainModel(transaction)
+            : null;
+    }
+    toDomainModel(transaction) {
+        return new Transaction({
+            id: transaction._id,
+            bookingId: transaction.bookingId,
+            clientId: transaction.clientId,
+            freelancerId: transaction.freelancerId,
+            gigId: transaction.gigId,
+            amount: transaction.amount,
+            status: transaction.status,
+            paymentMethod: transaction.paymentMethod,
+            createdAt: transaction.createdAt instanceof Date
+                ? transaction.createdAt.toISOString()
+                : transaction.createdAt,
+            completedAt: transaction.completedAt
+                ? transaction.completedAt instanceof Date
+                    ? transaction.completedAt.toISOString()
+                    : transaction.completedAt
+                : null
+        });
+    }
 }
+
 module.exports = TransactionRepository;

@@ -1,143 +1,93 @@
-
-const fs = require('fs/promises');
-const path = require('path');
 const Booking = require('../models/Booking');
+const BookingDocument = require('../models/mongoose/Booking');
+
+//region Booking Repository
 
 class BookingRepository {
-    constructor(filePath = path.join(__dirname, '../../data/bookings.json')) {
-        this.filePath = filePath;
-        this.writeQueue = Promise.resolve();
-    }
 
     async initialise() {
-        await fs.mkdir(path.dirname(this.filePath), {
-            recursive: true
-        });
-
-        try {
-            await fs.access(this.filePath);
-        } catch {
-            await fs.writeFile(this.filePath, '[]', 'utf8');
-        }
+        return true;
     }
 
     async getAll() {
-        await this.initialise();
+        const bookings = await BookingDocument.find().lean();
 
-        const fileContent = await fs.readFile(this.filePath, 'utf8');
-        const bookings = JSON.parse(fileContent);
-
-        return bookings.map(booking => new Booking(booking));
+        return bookings.map(booking => this.toDomainModel(booking));
     }
 
-    async findById(bookingId) {
-        const bookings = await this.getAll();
+    async findById(id) {
+        const booking = await BookingDocument.findById(id).lean();
 
-        return bookings.find(
-            booking => booking.id === bookingId
-        ) || null;
+        return booking ? this.toDomainModel(booking) : null;
     }
 
     async findByClientId(clientId) {
-        const bookings = await this.getAll();
+        const bookings = await BookingDocument.find({
+            clientId
+        }).lean();
 
-        return bookings.filter(
-            booking => booking.clientId === clientId
-        );
+        return bookings.map(booking => this.toDomainModel(booking));
     }
 
     async findByFreelancerId(freelancerId) {
-        const bookings = await this.getAll();
+        const bookings = await BookingDocument.find({
+            freelancerId
+        }).lean();
 
-        return bookings.filter(
-            booking => booking.freelancerId === freelancerId
-        );
+        return bookings.map(booking => this.toDomainModel(booking));
     }
 
     async create(bookingData) {
-        const operation = this.writeQueue.then(async () => {
-            const bookings = await this.getAll();
-
-            const booking = new Booking(bookingData);
-
-            bookings.push(booking);
-
-            await this.saveAll(bookings);
-
-            return booking;
+        const booking = await BookingDocument.create({
+            clientId: bookingData.clientId,
+            freelancerId: bookingData.freelancerId,
+            gigId: bookingData.gigId,
+            amount: bookingData.amount,
+            status: bookingData.status || 'pending'
         });
 
-        this.writeQueue = operation.catch(() => {});
-
-        return operation;
+        return this.toDomainModel(booking.toObject());
     }
 
-    async update(bookingId, updates) {
-        const operation = this.writeQueue.then(async () => {
-            const bookings = await this.getAll();
-
-            const bookingIndex = bookings.findIndex(
-                booking => booking.id === bookingId
-            );
-
-            if (bookingIndex === -1) {
-                return null;
+    async update(id, updates) {
+        const booking = await BookingDocument.findByIdAndUpdate(
+            id,
+            {
+                $set: {
+                    status: updates.status,
+                    updatedAt: new Date()
+                }
+            },
+            {
+                new: true,
+                runValidators: true
             }
+        ).lean();
 
-            const existingBooking = bookings[bookingIndex];
-
-            bookings[bookingIndex] = new Booking({
-                ...existingBooking,
-                status: updates.status ?? existingBooking.status,
-                updatedAt: new Date().toISOString()
-            });
-
-            await this.saveAll(bookings);
-
-            return bookings[bookingIndex];
-        });
-
-        this.writeQueue = operation.catch(() => {});
-
-        return operation;
+        return booking ? this.toDomainModel(booking) : null;
     }
 
-    async saveAll(bookings) {
-        const temporaryFile = `${this.filePath}.tmp`;
+    async delete(id) {
+        const booking = await BookingDocument.findByIdAndDelete(id);
 
-        await fs.writeFile(
-            temporaryFile,
-            JSON.stringify(
-                bookings.map(booking => booking.toPublicJSON()),
-                null,
-                4
-            ),
-            'utf8'
-        );
-
-        await fs.rename(temporaryFile, this.filePath);
+        return booking ? this.toDomainModel(booking.toObject()) : null;
     }
 
-    async delete(bookingId) {
-        const operation = this.writeQueue.then(async () => {
-            const bookings = await this.getAll();
-
-            const filteredBookings = bookings.filter(
-                booking => booking.id !== bookingId
-            );
-
-            if (filteredBookings.length === bookings.length) {
-                return false;
-            }
-
-            await this.saveAll(filteredBookings);
-
-            return true;
+    toDomainModel(booking) {
+        return new Booking({
+            id: booking._id,
+            clientId: booking.clientId,
+            freelancerId: booking.freelancerId,
+            gigId: booking.gigId,
+            amount: booking.amount,
+            status: booking.status,
+            createdAt: booking.createdAt instanceof Date
+                ? booking.createdAt.toISOString()
+                : booking.createdAt,
+            updatedAt: booking.updatedAt instanceof Date
+                ? booking.updatedAt.toISOString()
+                : booking.updatedAt
         });
-
-        this.writeQueue = operation.catch(() => {});
-
-        return operation;
     }
 }
 

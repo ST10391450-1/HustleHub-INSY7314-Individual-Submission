@@ -5,14 +5,13 @@ const http = require('http');
 
 const app = require('./app');
 const config = require('./config/config');
-const UserRepository = require('./repositories/UserRepository');
+const { connectDatabase, disconnectDatabase } = require('./config/database');
 
-//region Server Initialisation
 
 async function startServer() {
     try {
-        const userRepository = new UserRepository();
-        await userRepository.initialise();
+
+        await connectDatabase();
 
         let server;
 
@@ -23,10 +22,6 @@ async function startServer() {
             };
 
             server = https.createServer(credentials, app);
-
-            server.listen(config.port, () => {
-                console.log(`HustleHub+ API running at https://localhost:${config.port}`);
-            });
         } else {
             if (config.environment === 'production') {
                 throw new Error('HTTPS is required in production.');
@@ -35,27 +30,73 @@ async function startServer() {
             console.warn('WARNING: Running without HTTPS. Development only.');
 
             server = http.createServer(app);
-
-            server.listen(config.port, () => {
-                console.log(`HustleHub+ API running at http://localhost:${config.port}`);
-            });
         }
+
+        server.listen(config.port, () => {
+            const protocol = config.https.enabled ? 'https' : 'http';
+
+            console.log(
+                `HustleHub+ API running at ${protocol}://localhost:${config.port}`
+            );
+        });
 
         return server;
     } catch (error) {
         console.error('Failed to start HustleHub+ API:', error.message);
+
+        await disconnectDatabase().catch(() => {});
+
         process.exit(1);
     }
 }
+async function shutdownServer(server) {
+    console.log('Shutting down HustleHub+ API...');
 
-//endregion
+    if (server) {
+        await new Promise((resolve, reject) => {
+            server.close(error => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve();
+                }
+            });
+        });
+    }
 
-//region Application Entry Point
+    await disconnectDatabase();
 
+    console.log('HustleHub+ API shutdown completed.');
+}
 if (require.main === module) {
-    startServer();
+    let server;
+
+    startServer().then(startedServer => {
+        server = startedServer;
+    });
+
+    process.on('SIGINT', async () => {
+        try {
+            await shutdownServer(server);
+            process.exit(0);
+        } catch (error) {
+            console.error('Shutdown failed:', error.message);
+            process.exit(1);
+        }
+    });
+
+    process.on('SIGTERM', async () => {
+        try {
+            await shutdownServer(server);
+            process.exit(0);
+        } catch (error) {
+            console.error('Shutdown failed:', error.message);
+            process.exit(1);
+        }
+    });
 }
 
-module.exports = startServer;
-
-//endregion
+module.exports = {
+    startServer,
+    shutdownServer
+};

@@ -10,7 +10,8 @@ class Transaction {
         amount,
         status = 'simulated',
         paymentMethod = 'simulation',
-        createdAt = new Date().toISOString()
+        createdAt = new Date().toISOString(),
+        completedAt = null
     }) {
         this.id = id;
         this.bookingId = bookingId;
@@ -21,6 +22,7 @@ class Transaction {
         this.status = status;
         this.paymentMethod = paymentMethod;
         this.createdAt = createdAt;
+        this.completedAt = completedAt;
     }
 
     toPublicJSON() {
@@ -33,10 +35,10 @@ class Transaction {
             amount: this.amount,
             status: this.status,
             paymentMethod: this.paymentMethod,
-            createdAt: this.createdAt
+            createdAt: this.createdAt,
+            completedAt: this.completedAt
         };
     }
-
 }
 
 module.exports = Transaction;

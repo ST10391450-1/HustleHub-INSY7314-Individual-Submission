@@ -7,7 +7,6 @@ const transactionRepository = new TransactionRepository();
 const gigRepository = new GigRepository();
 
 const createBooking = async (req, res, next) => {
-    let booking = null;
 
     try {
         const { gigId } = req.body;
@@ -34,7 +33,7 @@ const createBooking = async (req, res, next) => {
             });
         }
 
-        booking = await bookingRepository.create({
+       const  booking = await bookingRepository.create({
             clientId: req.user.userId,
             freelancerId: gig.freelancerId,
             gigId: gig.id,
@@ -64,7 +63,7 @@ const createBooking = async (req, res, next) => {
         } catch (transactionError) {
             try {
                 await bookingRepository.delete(booking.id);
-            } catch (rollbackError) {
+            } catch {
                 transactionError.rollbackFailed = true;
             }
 

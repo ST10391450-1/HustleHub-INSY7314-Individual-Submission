@@ -1,0 +1,88 @@
+
+services:
+  mongodb:
+    image: mongo:8.0
+    container_name: hustlehub-mongodb
+    restart: unless-stopped
+
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+
+    ports:
+      - "127.0.0.1:27017:27017"
+
+    volumes:
+      - mongodb_data:/data/db
+
+    healthcheck:
+      test:
+        - CMD
+        - mongosh
+        - --quiet
+        - --eval
+        - "db.adminCommand('ping').ok"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+    networks:
+      - hustlehub-network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: hustlehub-api
+    restart: unless-stopped
+
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HTTPS_ENABLED: "true"
+      SSL_KEY_PATH: ssl/server.key
+      SSL_CERT_PATH: ssl/server.crt
+
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1h}
+      BCRYPT_SALT_ROUNDS: ${BCRYPT_SALT_ROUNDS:-12}
+      ENUMERATION_SAFE_REGISTRATION: ${ENUMERATION_SAFE_REGISTRATION:-true}
+
+      DATA_FILE_PATH: data/users.json
+      MONGO_URI: mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongodb:27017/hustlehub?authSource=admin
+
+    volumes:
+      - ./ssl:/app/ssl:ro
+
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+    networks:
+      - hustlehub-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+
+    container_name: hustlehub-frontend
+    restart: unless-stopped
+
+    ports:
+      - "127.0.0.1:8080:80"
+
+    depends_on:
+      - api
+
+    networks:
+      - hustlehub-network
+
+volumes:
+  mongodb_data:
+
+networks:
+  hustlehub-network:
+    driver: bridge

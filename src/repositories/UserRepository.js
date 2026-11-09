@@ -1,130 +1,80 @@
-
-const fs = require('fs/promises');
-const path = require('path');
-
 const User = require('../models/User');
-const config = require('../config/config');
+const UserDocument = require('../models/mongoose/User');
+
 
 class UserRepository {
 
-    //region Repository Initialisation
-
-    constructor(filePath = config.storage.dataFilePath) {
-        this.filePath = path.resolve(filePath);
-        this.writeQueue = Promise.resolve();
-    }
 
     async initialise() {
-        const directory = path.dirname(this.filePath);
-
-        await fs.mkdir(directory, { recursive: true });
-
-        try {
-            await fs.writeFile(this.filePath, '[]', {
-                flag: 'wx',
-                encoding: 'utf8'
-            });
-        } catch (error) {
-            if (error.code !== 'EEXIST') {
-                throw error;
-            }
-        }
+        return true;
     }
 
-    //endregion
-
-    //region User Retrieval
 
     async getAll() {
-        const contents = await fs.readFile(this.filePath, 'utf8');
-        const users = JSON.parse(contents);
+        const users = await UserDocument.find().lean();
 
-        if (!Array.isArray(users)) {
-            throw new Error('User data file contains invalid data.');
-        }
-
-        return users.map(user => new User(user));
+        return users.map(user => this.toDomainModel(user));
     }
 
     async findByEmail(email) {
         const normalisedEmail = email.trim().toLowerCase();
-        const users = await this.getAll();
 
-        return users.find(user => user.email === normalisedEmail) || null;
+        const user = await UserDocument.findOne({
+            email: normalisedEmail
+        }).lean();
+
+        return user ? this.toDomainModel(user) : null;
     }
 
+   
     async findById(id) {
-        const users = await this.getAll();
+        const user = await UserDocument.findById(id).lean();
 
-        return users.find(user => user.id === id) || null;
+        return user ? this.toDomainModel(user) : null;
     }
 
-    //endregion
 
-    //region User Storage
+    async create(userData) {
+        const allowedRoles = ['client', 'freelancer'];
 
-    async saveAll(users) {
-        const temporaryPath =
-            `${this.filePath}.${process.pid}.${Date.now()}.tmp`;
+        const role = allowedRoles.includes(userData.role)
+            ? userData.role
+            : 'client';
 
         try {
-            await fs.writeFile(
-                temporaryPath,
-                JSON.stringify(users, null, 4),
-                {
-                    encoding: 'utf8',
-                    flag: 'wx'
-                }
-            );
-
-            await fs.rename(temporaryPath, this.filePath);
-        } catch (error) {
-            await fs.unlink(temporaryPath).catch(() => {});
-            throw error;
-        }
-    }
-    async create(userData) {
-        const operation = this.writeQueue.then(async () => {
-            const users = await this.getAll();
-
-            const email = userData.email.trim().toLowerCase();
-
-            const existingUser = users.find(
-                user => user.email === email
-            );
-
-            if (existingUser) {
-                const error = new Error('User already exists.');
-                error.code = 'DUPLICATE_EMAIL';
-                throw error;
-            }
-
-            const allowedRoles = ['client', 'freelancer'];
-
-            const role = allowedRoles.includes(userData.role)
-                ? userData.role
-                : 'client';
-
-            const user = new User({
+            const user = await UserDocument.create({
                 fullName: userData.fullName,
-                email,
+                email: userData.email.trim().toLowerCase(),
                 passwordHash: userData.passwordHash,
                 role
             });
 
-            users.push(user);
+            return this.toDomainModel(user.toObject());
+        } catch (error) {
+            if (error.code === 11000) {
+                const duplicateError = new Error('User already exists.');
+                duplicateError.code = 'DUPLICATE_EMAIL';
 
-            await this.saveAll(users);
+                throw duplicateError;
+            }
 
-            return user;
-        });
-
-        this.writeQueue = operation.catch(() => {});
-
-        return operation;
+            throw error;
+        }
     }
-
-    //endregion
+    toDomainModel(user) {
+        return new User({
+            id: user._id,
+            fullName: user.fullName,
+            email: user.email,
+            passwordHash: user.passwordHash,
+            role: user.role,
+            createdAt: user.createdAt instanceof Date
+                ? user.createdAt.toISOString()
+                : user.createdAt,
+            updatedAt: user.updatedAt instanceof Date
+                ? user.updatedAt.toISOString()
+                : user.updatedAt
+        });
+    }
 }
-
 module.exports = UserRepository;

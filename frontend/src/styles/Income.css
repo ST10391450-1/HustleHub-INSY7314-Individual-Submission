@@ -70,7 +70,7 @@
 
 .income-summary {
     display: grid;
-    grid-template-columns: 1.5fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 22px;
     margin-bottom: 45px;
 }
@@ -96,15 +96,17 @@
 
 .income-summary-card strong {
     color: #172033;
-    font-size: 2rem;
+    font-size: clamp(1.5rem, 3vw, 2rem);
     font-weight: 800;
     letter-spacing: -1px;
+    overflow-wrap: anywhere;
 }
 
 .income-summary-card p {
     margin: 0;
     color: #8992a3;
     font-size: 0.82rem;
+    line-height: 1.5;
 }
 
 .income-total-card {
@@ -121,6 +123,141 @@
     color: #c1c9d8;
 }
 
+.income-tax-summary {
+    margin-bottom: 45px;
+}
+
+.income-tax-summary .income-section-heading > div > p {
+    margin: 9px 0 0;
+    color: #8992a3;
+    font-size: 0.9rem;
+}
+
+.income-tax-card {
+    border-top: 4px solid #5368d5;
+}
+
+.income-after-tax-card {
+    border-top: 4px solid #239b78;
+}
+
+.income-transaction-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+    margin-bottom: 45px;
+}
+
+.income-tax-breakdown {
+    margin-bottom: 45px;
+    padding: 30px;
+    background: #ffffff;
+    border: 1px solid #e5e8ef;
+    border-radius: 13px;
+    box-shadow: 0 5px 18px rgba(25, 35, 60, 0.04);
+}
+
+.income-tax-rate {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+}
+
+.income-tax-rate span {
+    color: #68738a;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.income-tax-rate strong {
+    color: #5368d5;
+    font-size: 1.7rem;
+    font-weight: 800;
+}
+
+.income-tax-details {
+    padding: 10px 20px;
+    background: #f8f9fc;
+    border-radius: 10px;
+}
+
+.income-tax-detail-row {
+    min-height: 55px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    border-bottom: 1px solid #e8ebf2;
+}
+
+.income-tax-detail-row:last-child {
+    border-bottom: none;
+}
+
+.income-tax-detail-row span {
+    color: #68738a;
+    font-size: 0.9rem;
+}
+
+.income-tax-detail-row strong {
+    color: #172033;
+    font-size: 0.95rem;
+    text-align: right;
+}
+
+.income-tax-detail-row .income-rebate {
+    color: #239b78;
+}
+
+.income-tax-final-row {
+    margin-top: 5px;
+    padding-top: 5px;
+    border-top: 2px solid #dfe3ed;
+}
+
+.income-tax-final-row span,
+.income-tax-final-row strong {
+    color: #172033;
+    font-weight: 800;
+}
+
+.income-tax-explanation {
+    margin-top: 25px;
+}
+
+.income-tax-explanation h3 {
+    margin: 0 0 12px;
+    font-size: 1.05rem;
+}
+
+.income-tax-explanation p {
+    color: #68738a;
+    font-size: 0.88rem;
+    line-height: 1.7;
+}
+
+.income-tax-explanation .income-tax-disclaimer {
+    padding: 13px 16px;
+    color: #795b20;
+    background: #fff8e8;
+    border-left: 3px solid #d9a441;
+    border-radius: 5px;
+}
+
+.income-tax-source {
+    display: inline-block;
+    margin-top: 5px;
+    color: #5368d5;
+    font-size: 0.88rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.income-tax-source:hover {
+    text-decoration: underline;
+}
+
 .income-history {
     padding: 30px;
     background: #ffffff;
@@ -133,6 +270,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 20px;
     margin-bottom: 25px;
 }
 
@@ -245,15 +383,49 @@
         padding-top: 35px;
     }
 
-    .income-summary {
+    .income-summary,
+    .income-transaction-summary {
         grid-template-columns: 1fr;
     }
 
-    .income-history {
+    .income-history,
+    .income-tax-breakdown {
         padding: 20px 14px;
     }
 
     .income-summary-card strong {
         font-size: 1.7rem;
+    }
+
+    .income-section-heading {
+        align-items: flex-start;
+    }
+
+    .income-tax-rate strong {
+        font-size: 1.4rem;
+    }
+
+    .income-tax-detail-row {
+        align-items: flex-start;
+        padding: 15px 0;
+    }
+}
+
+@media (max-width: 420px) {
+    .income-section-heading {
+        flex-direction: column;
+    }
+
+    .income-tax-rate {
+        align-items: flex-start;
+    }
+
+    .income-tax-detail-row {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .income-tax-detail-row strong {
+        text-align: left;
     }
 }
